@@ -65,6 +65,21 @@ pac.StartStorableVars()
 	pac.SetupPartName(PART, "Parent")
 pac.EndStorableVars()
 
+local function doClampVector(val, byLink)
+	local clone
+
+	if byLink then
+		clone = val
+	else
+		clone = Vector(val)
+	end
+
+	clone.x = math.Clamp(clone.x, -16000, 16000)
+	clone.y = math.Clamp(clone.y, -16000, 16000)
+	clone.z = math.Clamp(clone.z, -16000, 16000)
+	return clone
+end
+
 function PART:SetUniqueID(id)
 	if self.owner_id then
 		pac.UniqueIDParts[self.owner_id] = pac.UniqueIDParts[self.owner_id] or {}
@@ -833,9 +848,13 @@ do -- drawing. this code is running every frame
 
 			self.cached_pos = pos
 			self.cached_ang = ang
+			doClampVector(pos, true)
+			ang:Normalize()
 
 			if not self.PositionOffset:IsZero() or not self.AngleOffset:IsZero() then
-				pos, ang = LocalToWorld(self.PositionOffset, self.AngleOffset, pos, ang)
+				local cloneVec, cloneAng = doClampVector(self.PositionOffset), Angle(self.AngleOffset)
+				cloneAng:Normalize()
+				pos, ang = LocalToWorld(cloneVec, cloneAng, pos, ang)
 			end
 
 			if not self.HandleModifiersManually then self:ModifiersPreEvent(event, draw_type) end
@@ -858,6 +877,8 @@ do -- drawing. this code is running every frame
 			local owner = self:GetOwner()
 			if owner:IsValid() then
 				local pos, ang = self:GetBonePosition(bone_override)
+				doClampVector(pos, true)
+				ang:Normalize()
 
 				pos, ang = LocalToWorld(
 					self.Position or Vector(),
@@ -867,18 +888,17 @@ do -- drawing. this code is running every frame
 				)
 
 				ang = self:CalcAngles(ang) or ang
+				ang:Normalize()
+				doClampVector(pos, true)
 
 				self.last_drawpos = pos
 				self.last_drawang = ang
 
 				return pos, ang
 			end
-
-		else
-			return self.last_drawpos, self.last_drawang
 		end
-
-		return Vector(0,0,0), Angle(0,0,0)
+		
+		return self.last_drawpos or Vector(0, 0, 0), self.last_drawang or Angle(0, 0, 0)
 	end
 
 	function PART:GetBonePosition(bone_override)
@@ -889,7 +909,7 @@ do -- drawing. this code is running every frame
 			local parent = self:GetParent()
 
 			if parent:IsValid() and parent.ClassName == "jiggle" then
-				return parent.pos, parent.ang
+				return Vector(parent.pos), Angle(parent.ang)
 			end
 
 			local pos, ang
@@ -916,10 +936,12 @@ do -- drawing. this code is running every frame
 				pos, ang = pac.GetBonePosAng(owner, self.Bone)
 			end
 
+			doClampVector(pos)
+
 			self.last_bonepos = pos
 			self.last_boneang = ang
 
-			return pos, ang
+			return pos, Angle(ang)
 		else
 			return self.last_bonepos, self.last_boneang
 		end
@@ -941,28 +963,37 @@ do -- drawing. this code is running every frame
 		if pac.StringFind(self.AimPartName, "LOCALEYES_YAW", true, true) then
 			ang = (pac.EyePos - self.cached_pos):Angle()
 			ang.p = 0
-			return self.Angles + ang
+			local addition = self.Angles + ang
+			addition:Normalize()
+			return addition
 		end
 
 		if pac.StringFind(self.AimPartName, "LOCALEYES_PITCH", true, true) then
 			ang = (pac.EyePos - self.cached_pos):Angle()
 			ang.y = 0
-			return self.Angles + ang
+			local addition = self.Angles + ang
+			addition:Normalize()
+			return addition
 		end
 
 		if pac.StringFind(self.AimPartName, "LOCALEYES", true, true) then
-			return self.Angles + (pac.EyePos - self.cached_pos):Angle()
+			local addition = self.Angles + (pac.EyePos - self.cached_pos):Angle()
+			addition:Normalize()
+			return addition
 		end
-
 
 		if pac.StringFind(self.AimPartName, "PLAYEREYES", true, true) then
 			local ent = owner.pac_traceres and owner.pac_traceres.Entity or NULL
 
 			if ent:IsValid() then
-				return self.Angles + (ent:EyePos() - self.cached_pos):Angle()
+				local addition = self.Angles + (ent:EyePos() - self.cached_pos):Angle()
+				addition:Normalize()
+				return addition
 			end
 
-			return self.Angles + (pac.EyePos - self.cached_pos):Angle()
+			local addition = self.Angles + (pac.EyePos - self.cached_pos):Angle()
+			addition:Normalize()
+			return addition
 		end
 
 		if self.AnglePart:IsValid() then
@@ -972,22 +1003,30 @@ do -- drawing. this code is running every frame
 			a.y = a.y * self.AnglePartMultiplier.y
 			a.r = a.r * self.AnglePartMultiplier.z
 
-			return self.AngleOffset + self.Angles + a
+			local addition = self.AngleOffset + self.Angles + a
+			addition:Normalize()
+			return addition
 		end
 
 		if self.AimPart:IsValid() then
-			return self.Angles + (self.AimPart.cached_pos - self.cached_pos):Angle()
+			local addition = self.Angles + (self.AimPart.cached_pos - self.cached_pos):Angle()
+			addition:Normalize()
+			return addition
 		end
 
 		if self.EyeAngles then
 			if owner:IsPlayer() then
-				return self.Angles + ((owner.pac_hitpos or owner:GetEyeTraceNoCursor().HitPos) - self.cached_pos):Angle()
+				local addition = self.Angles + ((owner.pac_hitpos or owner:GetEyeTraceNoCursor().HitPos) - self.cached_pos):Angle()
+				addition:Normalize()
+				return addition
 			elseif owner:IsNPC() then
-				return self.Angles + ((owner:EyePos() + owner:GetForward() * 100) - self.cached_pos):Angle()
+				local addition = self.Angles + ((owner:EyePos() + owner:GetForward() * 100) - self.cached_pos):Angle()
+				addition:Normalize()
+				return addition
 			end
 		end
 
-		return ang or Angle(0,0,0)
+		return ang or Angle(0, 0, 0)
 	end
 
 	--SETUP_CACHE_FUNC(PART, "CalcAngles")
