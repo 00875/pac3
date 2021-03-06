@@ -376,21 +376,17 @@ function pace.SubmitPartNotify(data)
 			end
 		end
 
-		net.Start("pac_submit_acknowledged")
-			net.WriteBool(true)
-			net.WriteString(reason or "")
-			net.WriteString(data.part.self.Name or "no name")
-		net.Send(data.owner)
+		if reason then
+			pac.MessagePlayer(data.owner, reason)
+		end
 
 		hook.Run("PACSubmitAcknowledged", data.owner, true, reason or "", data.part.self.Name or "no name", data)
 	end):Catch(function(reason)
 		if not data.owner:IsValid() then return end
 
-		net.Start("pac_submit_acknowledged")
-			net.WriteBool(false)
-			net.WriteString(reason or "")
-			net.WriteString(data.part.self.Name or "no name")
-		net.Send(data.owner)
+		if reason then
+			pac.ChatPlayer(data.owner, Color(255, 0, 0), reason)
+		end
 
 		hook.Run("PACSubmitAcknowledged", data.owner, false, reason or "", data.part.self.Name or "no name", data)
 	end)

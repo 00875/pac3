@@ -1,5 +1,5 @@
 
-DLib.CMessage(pac, 'PAC3', Color(255, 255, 0))
+DLib.CMessageChat(pac, 'PAC3', Color(255, 255, 0))
 
 function pac.dprint(fmt, ...)
 	if not pac.debug then return end

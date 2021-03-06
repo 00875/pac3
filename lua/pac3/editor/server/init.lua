@@ -6,7 +6,6 @@ resource.AddWorkshop("104691717")
 pace.Parts = pace.Parts or {}
 pace.Errors = {}
 
-util.AddNetworkString('pac_submit_acknowledged')
 util.AddNetworkString('pac_update_playerfilter')
 
 do

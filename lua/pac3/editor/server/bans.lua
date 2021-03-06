@@ -27,12 +27,9 @@ function pace.Ban(ply)
 
 	ply:ConCommand("pac_clear_parts")
 
-	timer.Simple( 1, function() -- made it a timer because the ConCommand don't run fast enough. - Bizzclaw
+	timer.Simple(1, function() -- made it a timer because the ConCommand don't run fast enough. - Bizzclaw
 
-		net.Start("pac_submit_acknowledged")
-			net.WriteBool(false)
-			net.WriteString("You have been banned from using pac!")
-		net.Send(ply)
+		pac.ChatPlayer(ply, Color(255, 0, 0), "You have been banned from using pac!")
 
 		local bans = get_bans()
 
@@ -51,11 +48,7 @@ function pace.Ban(ply)
 end
 
 function pace.Unban(ply)
-
-	net.Start("pac_submit_acknowledged")
-		net.WriteBool(true)
-		net.WriteString("You are now permitted to use pac!")
-	net.Send(ply)
+	pac.ChatPlayer(ply, Color(0, 255, 0), "You are now permitted to use pac!")
 
 	local bans = get_bans()
 
