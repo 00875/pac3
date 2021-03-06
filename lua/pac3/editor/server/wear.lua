@@ -411,7 +411,7 @@ function pace.HandleReceivedData(ply, data)
 			local assemble = {}
 
 			for i, steamid in ipairs(data.wear_filter) do
-				table.insert(assemble, "STEAM_" .. tostring(steamid))
+				table.insert(assemble, steamid)
 			end
 
 			data.wear_filter = assemble
