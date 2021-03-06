@@ -75,7 +75,7 @@ do -- part
 	PANEL.Base = "pace_properties_base_type"
 
 	function PANEL:EncodeEdit(uid)
-		local part = pac.GetPartFromUniqueID(pac.LocalPlayer:UniqueID(), uid)
+		local part = pac.GetPartFromUniqueID(pac.LocalPlayer:DLibUniqueID(), uid)
 
 		if part:IsValid() then
 			return part:GetName()
@@ -85,7 +85,8 @@ do -- part
 	end
 
 	function PANEL:DecodeEdit(name)
-		local part = pac.FindPartByName(pac.LocalPlayer:UniqueID(), name)
+		local part = pac.FindPartByName(pac.LocalPlayer:DLibUniqueID(), name)
+
 		if part:IsValid() then
 			return part:GetUniqueID()
 		end
@@ -95,10 +96,9 @@ do -- part
 
 	function PANEL:OnValueSet(val)
 		if not IsValid(self.part) then return end
-		local part = pac.GetPartFromUniqueID(pac.LocalPlayer:UniqueID(), val)
+		local part = pac.GetPartFromUniqueID(pac.LocalPlayer:DLibUniqueID(), val)
 
 		if IsValid(self.Icon) then self.Icon:Remove() end
-
 
 		if not part:IsValid() then
 			return

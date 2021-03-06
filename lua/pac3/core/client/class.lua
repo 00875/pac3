@@ -135,7 +135,7 @@ do
 
 			self[key.."UID"] = uid
 
-			local owner_id = self:GetPlayerOwner():UniqueID()
+			local owner_id = self:GetPlayerOwner():DLibUniqueID()
 			local part = pac.GetPartFromUniqueID(owner_id, uid)
 
 			if part:IsValid() then

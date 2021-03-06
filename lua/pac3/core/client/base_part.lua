@@ -125,7 +125,7 @@ do -- owner
 		if not owner:IsValid() then return end
 
 		if owner:IsPlayer() then
-			return owner:UniqueID()
+			return owner:DLibUniqueID()
 		end
 
 		return owner:EntIndex()

@@ -119,7 +119,7 @@ function PART:AttachToEntity(ent)
 	part.SetOwner = function(s) s.Owner = ent end
 
 
-	local id = part.Id + self:GetPlayerOwner():UniqueID()
+	local id = part.Id + self:GetPlayerOwner():DLibUniqueID()
 
 	part.show_in_editor = false
 	part:SetHide(false)
@@ -320,7 +320,7 @@ do -- physical
 			local ent = Entity(data.ent_id)
 
 			if ent:IsValid() and ent:GetClass() == "pac_projectile" then
-				local part = pac.GetPartFromUniqueID(data.ply:IsPlayer() and data.ply:UniqueID() or data.ply:EntIndex(), data.partuid)
+				local part = pac.GetPartFromUniqueID(data.ply:IsPlayer() and data.ply:DLibUniqueID() or data.ply:EntIndex(), data.partuid)
 				if part:IsValid() and part:GetPlayerOwner() == data.ply then
 					part:AttachToEntity(ent)
 				end

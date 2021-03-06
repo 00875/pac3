@@ -41,7 +41,7 @@ function PART:GetAnimID()
 		return "pac_anim_" .. (self:GetPlayerOwner():IsValid() and string.format("%p", self:GetPlayerOwner()) or "!") .. "_" .. self:GetUniqueID()
 	end
 
-	return "pac_anim_" .. (self:GetPlayerOwner():IsValid() and self:GetPlayerOwner():UniqueID() or "") .. self:GetUniqueID()
+	return "pac_anim_" .. (self:GetPlayerOwner():IsValid() and self:GetPlayerOwner():DLibUniqueID() or "") .. self:GetUniqueID()
 end
 
 function PART:SetRate(num)

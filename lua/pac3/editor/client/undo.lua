@@ -24,13 +24,12 @@ local function find_uid_part(part, findpart)
 end
 
 local function diff_remove(a, b, aparent, bparent)
-
 	for _, apart in ipairs(a.children) do
 		local bpart = find_uid_part(b, apart)
 
 		if not bpart then
-			local part = pac.GetPartFromUniqueID(pac.LocalPlayer:UniqueID(), apart.self.UniqueID)
-			local parent = pac.GetPartFromUniqueID(pac.LocalPlayer:UniqueID(), apart.self.ParentUID)
+			local part = pac.GetPartFromUniqueID(pac.LocalPlayer:DLibUniqueID(), apart.self.UniqueID)
+			local parent = pac.GetPartFromUniqueID(pac.LocalPlayer:DLibUniqueID(), apart.self.ParentUID)
 
 			if part:IsValid() then
 				if part:GetParent() == parent then
@@ -47,7 +46,6 @@ local function diff_remove(a, b, aparent, bparent)
 	end
 end
 
-
 local function diff_create(a, b, aparent, bparent)
 
 	for _, bpart in ipairs(b.children) do
@@ -58,8 +56,8 @@ local function diff_create(a, b, aparent, bparent)
 				local bval = bpart.self[key]
 
 				if aval ~= bval then
-					local part = pac.GetPartFromUniqueID(pac.LocalPlayer:UniqueID(), bpart.self.UniqueID)
-					local parent = pac.GetPartFromUniqueID(pac.LocalPlayer:UniqueID(), apart.self.ParentUID)
+					local part = pac.GetPartFromUniqueID(pac.LocalPlayer:DLibUniqueID(), bpart.self.UniqueID)
+					local parent = pac.GetPartFromUniqueID(pac.LocalPlayer:DLibUniqueID(), apart.self.ParentUID)
 
 					if part:IsValid() and part:GetParent() == parent then
 						if part["Set" .. key] then
