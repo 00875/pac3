@@ -494,13 +494,13 @@ local function pac_update_playerfilter(len, ply)
 	end
 
 	for i = 1, sizeof do
-		table.insert(filter, "STEAM_" .. net.ReadString())
+		table.insert(filter, net.ReadString())
 	end
 
 	local players = {}
 
 	for i, ply in ipairs(player.GetAll()) do
-		players[ply:SteamID()] = ply
+		players[ply:DLibUniqueID()] = ply
 	end
 
 	for id, outfits in pairs(pace.Parts) do

@@ -121,17 +121,28 @@ end
 function pac.UseWhitelistUpdates()
 	local lply = pac.LocalPlayer
 
+	-- well, we COULD and SHOULD BE using SteamID(), but that won't work for bots
+	-- since cookie table is literally (TEXT, TEXT) SQLite table, it can store any length keys and values
+	for _, ply in ipairs(player.GetAll()) do
+		local status = cookie.GetString('pac3_wear_wl_' .. ply:UniqueID())
+
+		if status then
+			cookie.SetString('pac3_wear_wl_' .. ply:DLibUniqueID(), status)
+			cookie.Delete('pac3_wear_wl_' .. ply:UniqueID())
+		end
+	end
+
 	if pac_use_whitelist:GetBool() then
 		if pac_use_whitelist_b:GetBool() then
 			for k, v in ipairs(player.GetAll()) do
 				if v ~= lply then
-					pac.ToggleIgnoreEntity(v, cookie.GetString('pac3_wear_wl_' .. v:UniqueID(), '0') == '1', 'pac_whitelist')
+					pac.ToggleIgnoreEntity(v, cookie.GetString('pac3_wear_wl_' .. v:DLibUniqueID(), '0') == '1', 'pac_whitelist')
 				end
 			end
 		else
 			for k, v in ipairs(player.GetAll()) do
 				if v ~= lply then
-					pac.ToggleIgnoreEntity(v, cookie.GetString('pac3_wear_wl_' .. v:UniqueID(), '0') ~= '1', 'pac_whitelist')
+					pac.ToggleIgnoreEntity(v, cookie.GetString('pac3_wear_wl_' .. v:DLibUniqueID(), '0') ~= '1', 'pac_whitelist')
 				end
 			end
 		end
@@ -145,11 +156,20 @@ function pac.UseWhitelistUpdates()
 end
 
 function pac.UseWhitelistUpdatesPerPlayer(ply)
+	-- well, we COULD and SHOULD BE using SteamID(), but that won't work for bots
+	-- since cookie table is literally (TEXT, TEXT) SQLite table, it can store any length keys and values
+	local status = cookie.GetString('pac3_wear_wl_' .. ply:UniqueID())
+
+	if status then
+		cookie.SetString('pac3_wear_wl_' .. ply:DLibUniqueID(), status)
+		cookie.Delete('pac3_wear_wl_' .. ply:UniqueID())
+	end
+
 	if pac_use_whitelist:GetBool() then
 		if pac_use_whitelist_b:GetBool() then
-			pac.ToggleIgnoreEntity(ply, cookie.GetString('pac3_wear_wl_' .. ply:UniqueID(), '0') == '1', 'pac_whitelist')
+			pac.ToggleIgnoreEntity(ply, cookie.GetString('pac3_wear_wl_' .. ply:DLibUniqueID(), '0') == '1', 'pac_whitelist')
 		else
-			pac.ToggleIgnoreEntity(ply, cookie.GetString('pac3_wear_wl_' .. ply:UniqueID(), '0') ~= '1', 'pac_whitelist')
+			pac.ToggleIgnoreEntity(ply, cookie.GetString('pac3_wear_wl_' .. ply:DLibUniqueID(), '0') ~= '1', 'pac_whitelist')
 		end
 	else
 		pac.ToggleIgnoreEntity(ply, false, 'pac_whitelist')

@@ -8,22 +8,33 @@ do -- to server
 	local function assemblePlayerFilter()
 		local filter = {}
 
+		-- well, we COULD and SHOULD BE using SteamID(), but that won't work for bots
+		-- since cookie table is literally (TEXT, TEXT) SQLite table, it can store any length keys and values
+		for _, ply in ipairs(player.GetAll()) do
+			local status = cookie.GetString('pac3_wear_wl_' .. ply:UniqueID())
+
+			if status then
+				cookie.SetString('pac3_wear_wl_' .. ply:DLibUniqueID(), status)
+				cookie.Delete('pac3_wear_wl_' .. ply:UniqueID())
+			end
+		end
+
 		if pac_wear_friends_only:GetBool() then
 			for i, v in ipairs(player.GetAll()) do
 				if v:GetFriendStatus() == "friend" then
-					table.insert(filter, v:SteamID():sub(7))
+					table.insert(filter, v:DLibUniqueID())
 				end
 			end
 		elseif pac_wear_reverse:GetBool() then
 			for i, v in ipairs(player.GetAll()) do
-				if cookie.GetString('pac3_wear_block_' .. v:UniqueID(), '0') == '1' then
-					table.insert(filter, v:SteamID():sub(7))
+				if cookie.GetString('pac3_wear_block_' .. v:DLibUniqueID(), '0') == '1' then
+					table.insert(filter, v:DLibUniqueID())
 				end
 			end
 		else
 			for i, v in ipairs(player.GetAll()) do
-				if cookie.GetString('pac3_wear_block_' .. v:UniqueID(), '0') ~= '1' then
-					table.insert(filter, v:SteamID():sub(7))
+				if cookie.GetString('pac3_wear_block_' .. v:DLibUniqueID(), '0') ~= '1' then
+					table.insert(filter, v:DLibUniqueID())
 				end
 			end
 		end
