@@ -270,7 +270,7 @@ function pace.OnVariableChanged(obj, key, val, not_from_editor)
 		end
 
 		if obj.Name == "" then
-			node:SetText(obj:GetName())
+			node:SetText(string.format("%s (%s)", obj:GetName(), obj:GetUniqueID():sub(1, 7)))
 		end
 	end
 
