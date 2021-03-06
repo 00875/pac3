@@ -1,4 +1,4 @@
-include("autorun/pac_core_init.lua")
+include("dlib/autorun/pac_core_init.lua")
 
 pace = pace or {}
 pace.luadata = include("pac3/libraries/luadata.lua")

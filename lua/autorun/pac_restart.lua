@@ -132,9 +132,9 @@ function _G.pac_Restart()
 	if not prefer_local_version:GetBool() then
 		pacLocal.Message("pac_restart: not reloading from local version")
 
-		for _, path in ipairs((file.Find("autorun/pac*", "LUA"))) do
+		for _, path in ipairs((file.Find("dlib/autorun/pac*", "LUA"))) do
 			if path:EndsWith("_init.lua") and path ~= "pac_init.lua" then
-				include("autorun/" .. path)
+				include("dlib/autorun/" .. path)
 			end
 		end
 
@@ -193,10 +193,10 @@ function _G.pac_Restart()
 
 				for _, path in ipairs((file.Find("autorun/pac_*", "LUA"))) do
 					if path:EndsWith("_init.lua") and path ~= "pac_init.lua" then
-						pacLocal.Message("pac_restart: including autorun/" .. path .. "...")
+						pacLocal.Message("pac_restart: including dlib/autorun/" .. path .. "...")
 
 						local ok, err = pcall(function()
-							include("autorun/" .. path)
+							include("dlib/autorun/" .. path)
 						end)
 
 						if not ok then
@@ -216,9 +216,9 @@ function _G.pac_Restart()
 		if not loadingHit then
 			pacLocal.Message("sv_allowcslua is not enabled or unable to find PAC3 in addons/, loading PAC3 again from server lua")
 
-			for _, path in ipairs((file.Find("autorun/pac*", "LUA"))) do
+			for _, path in ipairs((file.Find("dlib/autorun/pac*", "LUA"))) do
 				if path:EndsWith("_init.lua") and path ~= "pac_init.lua" then
-					include("autorun/" .. path)
+					include("dlib/autorun/" .. path)
 				end
 			end
 		end
