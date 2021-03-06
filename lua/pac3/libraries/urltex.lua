@@ -200,8 +200,15 @@ function urltex.StartDownload(url, data)
 			goto START
 		end
 
+		local wait_until = SysTime() + 5
+
 		while pnl:IsLoading() do
 			coroutine.yield()
+
+			if wait_until < SysTime() then
+				onTimeout()
+				goto START
+			end
 		end
 
 		while frames_passed < 20 do
