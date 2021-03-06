@@ -1,4 +1,6 @@
 
+local net = DLib.Net
+
 local pac_wear_friends_only = CreateClientConVar("pac_wear_friends_only", "0", true, false, 'Wear outfits only to friends')
 local pac_wear_reverse = CreateClientConVar("pac_wear_reverse", "0", true, false, 'Wear to NOBODY but to people from list (Blacklist -> Whitelist)')
 
@@ -57,18 +59,11 @@ do -- to server
 	end
 
 	local function net_write_table(tbl)
+		local before = net.BytesWritten()
+		net.WriteTable(tbl)
+		local after = net.BytesWritten()
 
-		local buffer = pac.StringStream()
-		buffer:writeTable(tbl)
-
-		local data = buffer:getString()
-		local ok, err = pcall(net.WriteStream, data)
-
-		if not ok then
-			return ok, err
-		end
-
-		return #data
+		return after - before
 	end
 
 	function pace.SendPartToServer(part, extra)
@@ -102,7 +97,7 @@ do -- to server
 		end
 
 		net.SendToServer()
-		pac.Message(('Transmitting outfit %q to server (%s)'):format(part.Name or part.ClassName or '<unknown>', string.NiceSize(bytes)))
+		pac.Message(('Transmitting outfit %q to server (%s)'):format(part.Name or part.ClassName or '<unknown>', DLib.I18n.FormatAnyBytesLong(bytes)))
 
 		return true
 	end
@@ -345,19 +340,14 @@ end
 
 net.Receive("pac_submit", function()
 	if not pac.IsEnabled() then return end
+	local data = net.ReadTable()
 
+	if type(data.owner) ~= "Player" or not data.owner:IsValid() then
+		pac.Message("received message from server but owner is not valid!? typeof " .. type(data.owner) .. ' || ', data.owner)
+		return
+	end
 
-	net.ReadStream(ply, function(data)
-		local buffer = pac.StringStream(data)
-		local data = buffer:readTable()
-
-		if type(data.owner) ~= "Player" or not data.owner:IsValid() then
-			pac.Message("received message from server but owner is not valid!? typeof " .. type(data.owner) .. ' || ', data.owner)
-			return
-		end
-
-		pace.HandleReceivedData(data)
-	end)
+	pace.HandleReceivedData(data)
 end)
 
 function pace.Notify(allowed, reason, name)

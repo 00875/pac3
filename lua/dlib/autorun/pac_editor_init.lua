@@ -2,7 +2,7 @@
 if CLIENT and pac and pace and not VLL_CURR_FILE and not VLL2_FILEDEF then return end
 
 if not pac then
-	include("autorun/pac_core_init.lua")
+	include("dlib/autorun/pac_core_init.lua")
 end
 
 if not pac then

@@ -366,39 +366,39 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 							file.Write(data.file_name..".debug.old.dat", data.buffer)
 						end
 
-						local f = pac.StringStream(data.buffer)
-						local id = f:read(4)
-						local version = f:readUInt32()
-						local checksum = f:readUInt32()
+						local f = DLib.BytesBuffer(data.buffer)
+						local id = f:ReadBinary(4)
+						local version = f:ReadUInt32()
+						local checksum = f:ReadUInt32()
 
-						local name_offset = f:tell()
-						local name = f:read(64)
-						local size_offset = f:tell()
-						local size = f:readUInt32()
+						local name_offset = f:Tell()
+						local name = f:ReadBinary(64)
+						local size_offset = f:Tell()
+						local size = f:ReadUInt32()
 
-						f:skip(12 * 6) -- skips over all the vec3 stuff
+						f:Walk(12 * 6) -- skips over all the vec3 stuff
 
-						f:skip(4) -- flags
-						f:skip(8) -- bone
-						f:skip(8) -- bone controller
-						f:skip(8) -- hitbox
-						f:skip(8) -- local anim
-						f:skip(8) -- sequences
-						f:skip(8) -- activitylistversion + eventsindexed
+						f:Walk(4) -- flags
+						f:Walk(8) -- bone
+						f:Walk(8) -- bone controller
+						f:Walk(8) -- hitbox
+						f:Walk(8) -- local anim
+						f:Walk(8) -- sequences
+						f:Walk(8) -- activitylistversion + eventsindexed
 
 						do
-							vmt_dir_count = f:readUInt32()
-							vmt_dir_offset = f:readUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+							vmt_dir_count = f:ReadUInt32()
+							vmt_dir_offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
 
 							local old_pos = f:tell()
-							f:seek(vmt_dir_offset)
-								local offset = f:readInt32()
+							f:Seek(vmt_dir_offset)
+								local offset = f:ReadInt32()
 								if offset > -1 then
 									offset = offset + vmt_dir_offset
 									if VERBOSE then print(data.file_name, "MATERIAL OFFSET:", offset) end
-									f:seek(offset)
+									f:Seek(offset)
 									for i = 1, vmt_dir_count do
-										local mat = (f:readString() .. ".vmt"):lower()
+										local mat = (f:ReadString() .. ".vmt"):lower()
 										local found = false
 
 										for i, v in pairs(files) do
@@ -419,7 +419,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 										table.insert(found_materials, mat)
 									end
 								end
-							f:seek(old_pos)
+							f:Seek(old_pos)
 
 							if ply == pac.LocalPlayer and #found_materials == 0 then
 								pac.Message(Color(255, 200, 50), url, ": could not find any materials in this model")
@@ -428,62 +428,62 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 
 						do
-							vtf_dir_count = f:readUInt32()
-							vtf_dir_offset = f:readUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+							vtf_dir_count = f:ReadUInt32()
+							vtf_dir_offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
 
-							local old_pos = f:tell()
-							f:seek(vtf_dir_offset)
+							local old_pos = f:Tell()
+							f:Seek(vtf_dir_offset)
 							for i = 1, vtf_dir_count do
-								local offset_pos = f:tell()
-								local offset = f:readUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+								local offset_pos = f:Tell()
+								local offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
 
-								local old_pos = f:tell()
-								f:seek(offset)
-								local dir = f:readString()
+								local old_pos = f:Tell()
+								f:Seek(offset)
+								local dir = f:ReadString()
 								table.insert(found_materialdirs, {offset_pos = offset_pos, offset = offset, dir = dir})
 								table.insert(found_vmt_directories, {dir = dir})
-								f:seek(old_pos)
+								f:Seek(old_pos)
 							end
-							f:seek(old_pos)
+							f:Seek(old_pos)
 						end
-						f:skip(4 + 8) -- skin
-						f:skip(8) -- bodypart
-						f:skip(8) -- attachment
-						f:skip(4 + 8) -- localnode
-						f:skip(8) -- flex
-						f:skip(8) -- flex rules
-						f:skip(8) -- ik
-						f:skip(8) -- mouth
-						f:skip(8) -- localpose
-						f:skip(4) -- render2dprop
-						f:skip(8) -- keyvalues
-						f:skip(8) -- iklock
-						f:skip(12) -- mass
-						f:skip(4) -- contents
+						f:Walk(4 + 8) -- skin
+						f:Walk(8) -- bodypart
+						f:Walk(8) -- attachment
+						f:Walk(4 + 8) -- localnode
+						f:Walk(8) -- flex
+						f:Walk(8) -- flex rules
+						f:Walk(8) -- ik
+						f:Walk(8) -- mouth
+						f:Walk(8) -- localpose
+						f:Walk(4) -- render2dprop
+						f:Walk(8) -- keyvalues
+						f:Walk(8) -- iklock
+						f:Walk(12) -- mass
+						f:Walk(4) -- contents
 
 						do
-							include_mdl_dir_count = f:readUInt32()
-							include_mdl_dir_offset = f:readUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+							include_mdl_dir_count = f:ReadUInt32()
+							include_mdl_dir_offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
 
-							local old_pos = f:tell()
+							local old_pos = f:Tell()
 
-							f:seek(include_mdl_dir_offset)
+							f:Seek(include_mdl_dir_offset)
 							for i = 1, include_mdl_dir_count do
-								local base_pos = f:tell()
+								local base_pos = f:Tell()
 
-								f:skip(4)
+								f:Walk(4)
 
 								local file_name_offset = f:readUInt32()
 								local old_pos = f:tell()
-									f:seek(base_pos + file_name_offset)
+									f:Seek(base_pos + file_name_offset)
 									table.insert(found_mdl_includes, {base_pos = base_pos, path = f:readString()})
-								f:seek(old_pos)
+								f:Seek(old_pos)
 							end
 
-							f:seek(old_pos)
+							f:Seek(old_pos)
 						end
 
-						f:skip(4) -- virtual pointer
+						f:Walk(4) -- virtual pointer
 
 						local anim_name_offset_pos = f:tell()
 
@@ -501,8 +501,8 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 						do -- replace the mdl name (max size is 64 bytes)
 							local newname = string.sub(dir .. data.file_name:lower(), 1, 63)
-							f:seek(name_offset)
-							f:write(newname .. string.rep("\0", 64-#newname))
+							f:Seek(name_offset)
+							f:WriteBinary(newname .. string.rep("\0", 64-#newname))
 						end
 
 						for i,v in ipairs(found_mdl_includes) do
@@ -520,10 +520,10 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 							if found then
 								local path = "models/" .. dir .. file_name
 								local newoffset = f:size() + 1
-								f:seek(newoffset)
-								f:writeString(path)
-								f:seek(v.base_pos + 4)
-								f:writeInt32(newoffset - v.base_pos)
+								f:Seek(newoffset)
+								f:WriteString(path)
+								f:Seek(v.base_pos + 4)
+								f:WriteInt32(newoffset - v.base_pos)
 							elseif ply == pac.LocalPlayer and not file.Exists(v.path, "GAME") then
 								pac.Message(Color(255, 50, 50), "the model want to include ", v.path, " but it doesn't exist")
 							end
@@ -533,18 +533,18 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						if data.file_name == "model.mdl" then
 							for i,v in ipairs(found_materialdirs) do
 								local newoffset = f:size() + 1
-								f:seek(newoffset)
-								f:writeString(dir)
-								f:seek(v.offset_pos)
-								f:writeInt32(newoffset - 1) -- -1 to convert 1 indexed to 0 indexed
+								f:Seek(newoffset)
+								f:WriteString(dir)
+								f:Seek(v.offset_pos)
+								f:WriteInt32(newoffset - 1) -- -1 to convert 1 indexed to 0 indexed
 							end
 						else
 							local new_name = "models/" .. dir .. data.file_name:gsub("mdl$", "ani")
 							local newoffset = f:size() + 1
-							f:seek(newoffset)
-							f:writeString(new_name)
-							f:seek(anim_name_offset_pos)
-							f:writeInt32(newoffset - 1) -- -1 to convert 1 indexed to 0 indexed
+							f:Seek(newoffset)
+							f:WriteString(new_name)
+							f:Seek(anim_name_offset_pos)
+							f:WriteInt32(newoffset - 1) -- -1 to convert 1 indexed to 0 indexed
 						end
 
 						local cursize = f:size()
@@ -552,23 +552,23 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						-- Add nulls to align to 4 bytes
 						local padding = 4-cursize%4
 						if padding<4 then
-							f:seek(cursize+1)
-							f:write(string.rep("\0",padding))
+							f:Seek(cursize+1)
+							f:WriteBinary(string.rep("\0",padding))
 							cursize = cursize + padding
 						end
 
-						f:seek(size_offset)
-						f:writeInt32(cursize)
+						f:Seek(size_offset)
+						f:WriteInt32(cursize)
 
-						data.buffer = f:getString()
+						data.buffer = f:ToString()
 
 						if DEBUG_MDL then
 							file.Write(data.file_name..".debug.new.dat", data.buffer)
 						end
 
-						local crc = pac.StringStream()
-						crc:writeInt32(tonumber(util.CRC(data.buffer)))
-						data.crc = crc:getString()
+						local crc = DLib.BytesBuffer()
+						crc:WriteInt32(tonumber(util.CRC(data.buffer)))
+						data.crc = crc:ToString()
 					end
 				end
 
@@ -624,9 +624,9 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 							end)
 						end
 
-						local crc = pac.StringStream()
-						crc:writeInt32(tonumber(util.CRC(data.buffer)))
-						data.crc = crc:getString()
+						local crc = DLib.BytesBuffer()
+						crc:WriteInt32(tonumber(util.CRC(data.buffer)))
+						data.crc = crc:ToString()
 					end
 				end
 			end

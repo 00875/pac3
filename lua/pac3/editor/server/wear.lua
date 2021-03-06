@@ -1,3 +1,6 @@
+
+local net = DLib.Net
+
 pace.StreamQueue = pace.StreamQueue or {}
 
 local frame_number = 0
@@ -28,20 +31,12 @@ local function make_copy(tbl, input)
 end
 
 local function net_write_table(tbl)
+	local before = net.BytesWritten()
+	net.WriteTable(tbl)
+	local after = net.BytesWritten()
 
-	local buffer = pac.StringStream()
-	buffer:writeTable(tbl)
-
-	local data = buffer:getString()
-	local ok, err = pcall(net.WriteStream, data)
-
-	if not ok then
-		return ok, err
-	end
-
-	return #data
+	return after - before
 end
-
 
 pace.dupe_ents = pace.dupe_ents or {}
 
@@ -429,10 +424,7 @@ pace.PCallNetReceive(net.Receive, "pac_submit", function(len, ply)
 		end
 	end
 
-	net.ReadStream(ply, function(data)
-		local buffer = pac.StringStream(data)
-		pace.HandleReceivedData(ply, buffer:readTable())
-	end)
+	pace.HandleReceivedData(ply, net.ReadTable())
 end)
 
 function pace.ClearOutfit(ply)
@@ -472,16 +464,6 @@ function pace.RequestOutfits(ply)
 	end)
 end
 
-local function qhasvalue(tab, value)
-	for i, val in ipairs(tab) do
-		if val == value then
-			return true
-		end
-	end
-
-	return false
-end
-
 local function pac_update_playerfilter(len, ply)
 	if not IsValid(ply) then return end
 
@@ -508,7 +490,7 @@ local function pac_update_playerfilter(len, ply)
 		return
 	end
 
-	for i = 1, net.ReadUInt(8) do
+	for i = 1, sizeof do
 		table.insert(filter, "STEAM_" .. net.ReadString())
 	end
 
@@ -525,7 +507,7 @@ local function pac_update_playerfilter(len, ply)
 			for key, outfit in pairs(outfits) do
 				if outfit.wear_filter then
 					for i, plyID in ipairs(filter) do
-						if not qhasvalue(outfit.wear_filter, plyID) then
+						if not table.qhasValue(outfit.wear_filter, plyID) then
 							local getPly = players[plyID]
 
 							if getPly and getPly.pac_requested_outfits and not getPly.pac_gonna_receive_outfits then
