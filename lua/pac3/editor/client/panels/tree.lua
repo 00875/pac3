@@ -127,7 +127,7 @@ do
 			end
 
 			if (part.ClassName == "proxy" or part.ClassName == "event") and part.Name == "" then
-				node:SetText(part:GetName())
+				node:SetText(string.format("%s (%s)", part:GetName(), part:GetUniqueID():sub(1, 7)))
 			end
 
 			if part:IsHiddenCached() then
@@ -314,7 +314,6 @@ end
 
 -- a hack, because creating a new node button will mess up the layout
 function PANEL:AddNode(...)
-
 	if self.RootNode then
 		install_drag(self.RootNode)
 	end
@@ -380,7 +379,7 @@ function PANEL:PopulateParts(node, parts, children)
 			elseif IsValid(self.parts[key]) then
 				part_node = self.parts[key]
 			else
-				part_node = node:AddNode(part:GetName())
+				part_node = node:AddNode(string.format("%s (%s)", part:GetName(), part:GetUniqueID():sub(1, 7)))
 			end
 
 			fix_folder_funcs(part_node)

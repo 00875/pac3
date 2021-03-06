@@ -242,10 +242,10 @@ function pace.OnVariableChanged(obj, key, val, not_from_editor)
 		end
 	end
 
-
 	func(obj, val)
 
 	local node = obj.pace_tree_node
+
 	if IsValid(node) then
 		if key == "Event" then
 			pace.PopulateProperties(obj)
@@ -253,7 +253,8 @@ function pace.OnVariableChanged(obj, key, val, not_from_editor)
 			if not obj:HasParent() then
 				pace.RemovePartOnServer(obj:GetUniqueID(), true, true)
 			end
-			node:SetText(val)
+
+			node:SetText(string.format("%s (%s)", val, obj:GetUniqueID():sub(1, 7)))
 		elseif key == "Model" and val and val ~= "" and type(val) == "string" then
 			node:SetModel(val)
 		elseif key == "Parent" then
