@@ -4,7 +4,7 @@ urltex.TextureSize = 1024
 urltex.ActivePanel = urltex.ActivePanel or NULL
 urltex.Queue = urltex.Queue or {}
 urltex.Cache = urltex.Cache or {}
-urltex.CacheManager = DLib.CacheManager('pac3_urltex', 512 * 0x00100000)
+urltex.CacheManager = DLib.CacheManager("pac3_urltex", 512 * 0x00100000, "vtf")
 
 concommand.Add("pac_urltex_clear_cache", function()
 	urltex.Cache = {}
@@ -64,16 +64,17 @@ function urltex.GetMaterialFromURL(url, callback, skip_cache, shader, size, size
 
 	noclamp = noclamp or noclampS and noclampT
 
-	local renderTargetNeeded =
-		noclampS or
-		noclamp or
-		noclampT
+	local get_hash = urltex.CacheManager:HasGetHash(hash)
+
+	if not urltex.Cache[urlIndex] and get_hash then
+		urltex.Cache[urlIndex] = "../data/" .. get_hash
+	end
 
 	if type(callback) == "function" and not skip_cache and urltex.Cache[urlIndex] then
 		local tex = urltex.Cache[urlIndex]
 		local mat = CreateMaterial("pac3_urltex_" .. DLib.Util.QuickSHA1(url .. SysTime()), shader, additionalData)
 		mat:SetTexture("$basetexture", tex)
-		callback(mat, tex)
+		callback(mat, mat:GetTexture("$basetexture"))
 		return
 	end
 
@@ -94,7 +95,6 @@ function urltex.GetMaterialFromURL(url, callback, skip_cache, shader, size, size
 			noclampS = noclampS,
 			noclampT = noclampT,
 			noclamp = noclamp,
-			rt = renderTargetNeeded,
 			additionalData = additionalData
 		}
 	end
@@ -187,7 +187,6 @@ function urltex.StartDownload(url, data)
 		else
 			pac.dprint("material download %q timed out for good", url, timeoutNum)
 			hook.Remove("Think", id)
-			timer.Remove(id)
 			urltex.Queue[data.urlIndex] = nil
 		end
 	end
@@ -227,54 +226,33 @@ function urltex.StartDownload(url, data)
 		local crc = DLib.Util.QuickSHA1(data.urlIndex .. SysTime())
 		local vertex_mat = CreateMaterial("pac3_urltex_" .. crc, data.shader, data.additionalData)
 		local tex = html_mat:GetTexture("$basetexture")
-
 		tex:Download()
 		vertex_mat:SetTexture("$basetexture", tex)
 
 		urltex.Cache[data.urlIndex] = tex
-
-		timer.Remove(id)
-
 		urltex.Queue[data.urlIndex] = nil
 
-		if data.rt then
-			local textureFlags = 0
-			textureFlags = textureFlags + 4 -- clamp S
-			textureFlags = textureFlags + 8 -- clamp T
-			textureFlags = textureFlags + 16 -- anisotropic
-			textureFlags = textureFlags + 256 -- no mipmaps
-			-- textureFlags = textureFlags + 2048 -- Texture is procedural
-			textureFlags = textureFlags + 32768 -- Texture is a render target
-			-- textureFlags = textureFlags + 67108864 -- Usable as a vertex texture
+		local rt = GetRenderTarget("pac3_urltex_" .. size, size, size)
 
-			if data.noclamp then
-				textureFlags = textureFlags - 4
-				textureFlags = textureFlags - 8
-			elseif data.noclampS then
-				textureFlags = textureFlags - 4
-			elseif data.noclampT then
-				textureFlags = textureFlags - 8
-			end
+		render.PushRenderTarget(rt)
+		render.Clear(0, 0, 0, 255, false, false)
 
-			local vertex_mat2 = CreateMaterial("pac3_urltex_" .. crc .. "_hack", 'UnlitGeneric', data.additionalData)
-			vertex_mat2:SetTexture("$basetexture", tex)
+		cam.Start2D()
+		surface.SetMaterial(html_mat)
+		surface.SetDrawColor(255, 255, 255)
+		surface.DrawTexturedRect(0, 0, size, size)
+		cam.End2D()
 
-			local rt = GetRenderTargetEx("pac3_urltex_" .. crc, size, size, RT_SIZE_NO_CHANGE, MATERIAL_RT_DEPTH_NONE, textureFlags, CREATERENDERTARGETFLAGS_UNFILTERABLE_OK, IMAGE_FORMAT_RGB888)
+		local vtf = DLib.VTF.Create(2, size, size, IMAGE_FORMAT_DXT1, {fill = Color(0, 0, 0), mipmap_count = -2})
+		vtf:CaptureRenderTargetCoroutine()
 
-			render.PushRenderTarget(rt)
-			render.Clear(0, 0, 0, 255, false, false)
+		render.PopRenderTarget()
 
-			cam.Start2D()
-			surface.SetMaterial(vertex_mat2)
-			surface.SetDrawColor(255, 255, 255)
-			surface.DrawTexturedRect(0, 0, size, size)
-			cam.End2D()
+		vtf:AutoGenerateMips()
+		local path = urltex.CacheManager:SetHash(data.hash, vtf:ToString())
+		vertex_mat:SetTexture("$basetexture", "../data/" .. path)
 
-			render.PopRenderTarget()
-			vertex_mat:SetTexture('$basetexture', rt)
-
-			urltex.Cache[data.urlIndex] = rt
-		end
+		urltex.Cache[data.urlIndex] = vertex_mat:GetTexture("$basetexture")
 
 		timer.Simple(0, function()
 			pnl:Remove()
@@ -302,8 +280,6 @@ function urltex.StartDownload(url, data)
 		end
 	end)
 
-	-- 5 sec max timeout, 5 maximal timeouts
-	timer.Create(id, 5, 5, onTimeout)
 	createDownloadPanel()
 end
 
