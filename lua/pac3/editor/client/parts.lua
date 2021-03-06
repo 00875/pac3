@@ -11,7 +11,7 @@ local function add_expensive_submenu_load(pnl, callback)
 end
 
 function pace.WearParts(file, clear)
-	local allowed, reason = pac.CallHook("CanWearParts", LocalPlayer(), file)
+	local allowed, reason = pac.CallHook("CanWearParts", pac.LocalPlayer, file)
 
 	if allowed == false then
 		pac.Message(reason or "the server doesn't want you to wear parts for some reason")
@@ -106,7 +106,7 @@ function pace.OnCreatePart(class_name, name, mdl, no_parent)
 		end
 	end
 
-	local ply = LocalPlayer()
+	local ply = pac.LocalPlayer
 
 	if part:GetPlayerOwner() == ply then
 		pace.SetViewPart(part)
@@ -118,7 +118,7 @@ function pace.OnCreatePart(class_name, name, mdl, no_parent)
 
 	part.newly_created = true
 
-	if not part.NonPhysical and parent:IsValid() and not parent:HasParent() and parent.OwnerName == "world" and part:GetPlayerOwner() == ply then
+	if parent.GetDrawPosition and parent:IsValid() and not parent:HasParent() and parent.OwnerName == "world" and part:GetPlayerOwner() == ply then
 		local data = ply:GetEyeTrace()
 
 		if data.HitPos:Distance(ply:GetPos()) < 1000 then
@@ -169,7 +169,7 @@ function pace.OnPartSelected(part, is_selecting)
 			local position
 
 			for i, child in ipairs(part:GetChildrenList()) do
-				if not position then
+				if not position and child.GetDrawPosition then
 					local pos = child:GetDrawPosition()
 
 					if not position then
@@ -291,7 +291,7 @@ function pace.GetRegisteredParts()
 	local out = {}
 	for class_name, part in pairs(pac.GetRegisteredParts()) do
 		local cond = (not pace.IsInBasicMode() or pace.BasicParts[class_name]) and
-			not part.Internal and
+			part.ClassName ~= "base" and
 			part.show_in_editor ~= false and
 			part.is_deprecated ~= false
 
@@ -557,8 +557,7 @@ do -- menu
 	function pace.Paste(obj)
 		if not pace.Clipboard then return end
 		pace.RecordUndoHistory()
-		local newObj = pac.CreatePart(pace.Clipboard.self.ClassName)
-		newObj:SetTable(pace.Clipboard)
+		local newObj = pac.CreatePart(pace.Clipboard.self.ClassName, nil, pace.Clipboard)
 		newObj:SetParent(obj)
 		pace.RecordUndoHistory()
 	end
@@ -636,7 +635,7 @@ do -- menu
 	end
 
 	function pace.OnNewPartMenu()
-		pace.current_part = pac.NULL
+		pace.current_part = NULL
 		local menu = DermaMenu()
 		menu:MakePopup()
 		menu:SetPos(input.GetCursorPos())
@@ -656,23 +655,29 @@ do -- menu
 	end
 end
 
-function pace.OnHoverPart(self)
-	local tbl = {}
+do
+	pac.haloex = include("pac3/libraries/haloex.lua")
 
-	if self.Entity and self.Entity:IsValid() then
-		table.insert(tbl, self.Entity)
-	end
+	function pace.OnHoverPart(self)
+		local tbl = {}
+		local ent = self:GetOwner()
 
-	for _, child in ipairs(self:GetChildrenList()) do
-		if child.Entity and child.Entity:IsValid() then
-			table.insert(tbl, child.Entity)
+		if ent:IsValid() then
+			table.insert(tbl, ent)
 		end
-	end
 
-	if #tbl > 0 then
-		local pulse = math.sin(pac.RealTime * 20) * 0.5 + 0.5
-		pulse = pulse * 255
-		pac.haloex.Add(tbl, Color(pulse, pulse, pulse, 255), 1, 1, 1, true, true, 5, 1, 1)
+		for _, child in ipairs(self:GetChildrenList()) do
+			local ent = self:GetOwner()
+			if ent:IsValid() then
+				table.insert(tbl, ent)
+			end
+		end
+
+		if #tbl > 0 then
+			local pulse = math.sin(pac.RealTime * 20) * 0.5 + 0.5
+			pulse = pulse * 255
+			pac.haloex.Add(tbl, Color(pulse, pulse, pulse, 255), 1, 1, 1, true, true, 5, 1, 1)
+		end
 	end
 end
 

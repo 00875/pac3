@@ -18,24 +18,24 @@ mctrl.angle_pos = 0.5
 mctrl.scale_pos = 0.25
 
 do -- pace
-	mctrl.target = pac.NULL
+	mctrl.target = NULL
 
 	function mctrl.SetTarget(part)
-		part = part or pac.NULL
+		part = part or NULL
 		if not part:IsValid() then
-			mctrl.target = pac.NULL
+			mctrl.target = NULL
 			return
 		end
 
-		if part.NonPhysical then
-			mctrl.target = pac.NULL
+		if not part.GetDrawPosition then
+			mctrl.target = NULL
 		else
 			mctrl.target = part
 		end
 	end
 
 	function mctrl.GetTarget()
-		return mctrl.target:IsValid() and not mctrl.target:IsHidden() and mctrl.target or pac.NULL
+		return mctrl.target:IsValid() and not mctrl.target:IsHidden() and mctrl.target or NULL
 	end
 
 	function mctrl.GetAxes(ang)
@@ -48,8 +48,9 @@ do -- pace
 		local part = mctrl.GetTarget()
 
 		if part:IsValid() then
-			if part.ClassName ~= 'group' then
-				return part:GetDrawPosition()
+			if part.GetWorldMatrixWithoutOffsets then
+				local m = part:GetWorldMatrixWithoutOffsets()
+				return m:GetTranslation(), m:GetAngles()
 			elseif part.centrePos then
 				return part.centrePos + part.centrePosMV, part.centreAngle
 			else
@@ -83,7 +84,7 @@ do -- pace
 
 	function mctrl.GetCameraFOV()
 		if pace.editing_viewmodel or pace.editing_hands then
-			return LocalPlayer():GetActiveWeapon().ViewModelFOV or 55
+			return pac.LocalPlayer:GetActiveWeapon().ViewModelFOV or 55
 		end
 
 		return pace.GetViewFOV()
@@ -140,9 +141,9 @@ do -- pace
 			return 45
 		end
 
-		if not part:IsValid() then return 3 end
+		if not part:IsValid() or not part.GetWorldPosition then return 3 end
 
-		local dist = (part.cached_pos:Distance(pace.GetViewPos()) / 50)
+		local dist = (part:GetWorldPosition():Distance(pace.GetViewPos()) / 50)
 
 		if dist > 1 then
 			dist = 1 / dist

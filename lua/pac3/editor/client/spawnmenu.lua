@@ -63,7 +63,7 @@ local function rebuildPlayerList()
 		self.plist = {}
 
 		for _, ply in ipairs(plys) do
-			if ply ~= LocalPlayer() then
+			if ply ~= pac.LocalPlayer then
 				local check = self:CheckBox(ply:Nick())
 				table.insert(self.plist, check)
 
@@ -107,7 +107,7 @@ local function rebuildPlayerList2()
 		self.plist = {}
 
 		for _, ply in ipairs(plys) do
-			if ply ~= LocalPlayer() then
+			if ply ~= pac.LocalPlayer then
 				local check = self:CheckBox(ply:Nick())
 				table.insert(self.plist, check)
 				check:SetChecked(cookie.GetString("pac3_wear_wl_" .. ply:UniqueID(), '0') == "1")
@@ -187,7 +187,6 @@ function pace.ClientSettingsMenu(self)
 
 	self:CheckBox(L"Friend only", "pac_friendonly")
 	self:CheckBox(L"Reveal outfits only on +use", "pac_onuse_only")
-	self:CheckBox(L"Hide outfits that some folks can find disturbing", "pac_hide_disturbing")
 
 	self:NumSlider(
 		L"PAC Volume",

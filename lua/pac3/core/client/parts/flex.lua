@@ -1,12 +1,12 @@
-local PART = {}
+local BUILDER, PART = pac.PartTemplate("base")
 
 PART.ClassName = "flex"
-PART.NonPhysical = true
+
 PART.Icon = 'icon16/emoticon_smile.png'
 PART.Group = 'entity'
 
-pac.StartStorableVars()
-	pac.GetSet(PART, "Flex", "", {
+BUILDER:StartStorableVars()
+	BUILDER:GetSet("Flex", "", {
 		enums = function(part)
 			local tbl = {}
 
@@ -18,10 +18,18 @@ pac.StartStorableVars()
 		end
 	})
 
-	pac.GetSet(PART, "Weight", 0)
-	pac.GetSet(PART, "RootOwner", false, { description = "Target the local player instead of the part's parent" })
-	pac.GetSet(PART, "DefaultOnHide", true)
-pac.EndStorableVars()
+	BUILDER:GetSet("Weight", 0)
+	BUILDER:GetSet("RootOwner", false, { description = "Target the local player instead of the part's parent" })
+	BUILDER:GetSet("DefaultOnHide", true)
+BUILDER:EndStorableVars()
+
+local function get_owner(self)
+	if self.RootOwner then
+		return self:GetRootOwner()
+	end
+
+	return self:GetOwner()
+end
 
 function PART:GetNiceName()
 	return self:GetFlex() ~= "" and self:GetFlex() or "no flex"
@@ -30,7 +38,7 @@ end
 function PART:GetFlexList()
 	local out = {}
 
-	local ent = self:GetOwner(self.RootOwner)
+	local ent = get_owner(self)
 
 	if ent:IsValid() and ent.GetFlexNum and ent:GetFlexNum() > 0 then
 		for i = 0, ent:GetFlexNum() - 1 do
@@ -43,7 +51,7 @@ function PART:GetFlexList()
 end
 
 function PART:UpdateFlex(flex, weight)
-	local ent = self:GetOwner(self.RootOwner)
+	local ent = get_owner(self)
 	if not ent:IsValid() or not ent.GetFlexNum or ent:GetFlexNum() == 0 then return end
 
 	if self.flex_ent ~= ent then
@@ -73,7 +81,7 @@ function PART:UpdateFlex(flex, weight)
 	self.flex_params = ent.pac_flex_params
 end
 
-function PART:OnDraw(owner, pos, ang)
+function PART:OnDraw()
 	if not IsValid(self.flex_ent) then return end
 
 	for k, v in pairs(self.flex_params) do
@@ -103,7 +111,7 @@ function PART:SetWeight(num)
 end
 
 function PART:OnShow()
-	local ent = self:GetOwner(self.RootOwner)
+	local ent = get_owner(self)
 
 	if ent:IsValid() then
 		self:UpdateFlex()
@@ -125,4 +133,4 @@ function PART:Clear()
 	self:UpdateFlex(self.Flex, 0)
 end
 
-pac.RegisterPart(PART)
+BUILDER:Register()

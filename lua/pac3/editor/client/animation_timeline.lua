@@ -7,7 +7,7 @@ local timeline = pace.timeline
 local secondDistance = 200 --100px per second on timeline
 
 do
-	local PART = {}
+	local BUILDER, PART = pac.PartTemplate("base_movable")
 
 	PART.ClassName = "timeline_dummy_bone"
 	PART.show_in_editor = false
@@ -22,15 +22,11 @@ do
 		local pos, ang
 
 		pos, ang = pac.GetBonePosAng(owner, self.Bone, true)
-		if owner:IsValid() then owner:InvalidateBoneCache() end
-
-		self.cached_pos = pos
-		self.cached_ang = ang
 
 		return pos, ang
 	end
 
-	pac.RegisterPart(PART)
+	BUILDER:Register()
 end
 
 function timeline.IsActive()

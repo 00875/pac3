@@ -389,7 +389,15 @@ do -- list
 	function PANEL:AddKeyValue(key, var, pos, obj, udata, group)
 		local btn = pace.CreatePanel("properties_label")
 			btn:SetTall(self:GetItemHeight())
-			btn:SetValue(L((udata and udata.editor_friendly or key):gsub("%u", " %1"):lower()):Trim())
+
+			do
+				local key = key
+				if key:EndsWith("UID") then
+					key = key:sub(1, -4)
+				end
+
+				btn:SetValue(L((udata and udata.editor_friendly or key):gsub("%u", " %1"):lower()):Trim())
+			end
 
 			if obj then
 				btn.key_name = key
@@ -877,16 +885,16 @@ do -- base editable
 
 	function PANEL:PopulateContextMenu(menu)
 		menu:AddOption(L"copy", function()
-			pace.clipboard = pac.class.Copy(self:GetValue())
+			pace.clipboard = pac.CopyValue(self:GetValue())
 		end):SetImage(pace.MiscIcons.copy)
 		menu:AddOption(L"paste", function()
-			self:SetValue(pac.class.Copy(pace.clipboard))
+			self:SetValue(pac.CopyValue(pace.clipboard))
 			self.OnValueChanged(self:GetValue())
 		end):SetImage(pace.MiscIcons.paste)
 		menu:AddSpacer()
 		menu:AddOption(L"reset", function()
 			if pace.current_part and pace.current_part.DefaultVars[self.CurrentKey] then
-				local val = pac.class.Copy(pace.current_part.DefaultVars[self.CurrentKey])
+				local val = pac.CopyValue(pace.current_part.DefaultVars[self.CurrentKey])
 				self:SetValue(val)
 				self.OnValueChanged(val)
 			end
@@ -918,6 +926,14 @@ do -- base editable
 		self.OnValueChanged(self:Decode(""))
 	end
 
+	function PANEL:EncodeEdit(str)
+		return str
+	end
+
+	function PANEL:DecodeEdit(str)
+		return str
+	end
+
 	function PANEL:EditText()
 		local oldText = self:GetText()
 		self:SetText("")
@@ -927,13 +943,13 @@ do -- base editable
 		pnl:SetFont(pace.CurrentFont)
 		pnl:SetDrawBackground(false)
 		pnl:SetDrawBorder(false)
-		pnl:SetValue(self.original_str or "")
+		pnl:SetText(self:EncodeEdit(self.original_str or ""))
 		pnl:SetKeyboardInputEnabled(true)
 		pnl:SetDrawLanguageID(languageID:GetBool())
 		pnl:RequestFocus()
 		pnl:SelectAllOnFocus(true)
 
-		pnl.OnTextChanged = function() oldText = pnl:GetValue() end
+		pnl.OnTextChanged = function() oldText = pnl:GetText() end
 
 		local hookID = tostring({})
 		local textEntry = pnl
@@ -968,8 +984,8 @@ do -- base editable
 
 			pnl:Remove()
 
-			self:SetValue(tostring(self:Encode(pnl:GetValue() or "")), true)
-			self.OnValueChanged(self:Decode(self:GetValue()))
+			self:SetText(tostring(self:Encode(self:DecodeEdit(pnl:GetText() or ""))), true)
+			self.OnValueChanged(self:Decode(self:GetText()))
 		end
 
 		local old = pnl.Paint
@@ -977,7 +993,7 @@ do -- base editable
 			if not self:IsValid() then pnl:Remove() return end
 
 			surface.SetFont(pnl:GetFont())
-			local w = surface.GetTextSize(pnl:GetValue()) + 6
+			local w = surface.GetTextSize(pnl:GetText()) + 6
 
 			surface.DrawRect(0, 0, w, pnl:GetTall())
 			surface.SetDrawColor(self:GetSkin().Colours.Properties.Border)
@@ -1188,10 +1204,10 @@ do -- vector
 
 		function PANEL:PopulateContextMenu(menu)
 			menu:AddOption(L"copy", function()
-				pace.clipboard = pac.class.Copy(self.vector)
+				pace.clipboard = pac.CopyValue(self.vector)
 			end):SetImage(pace.MiscIcons.copy)
 			menu:AddOption(L"paste", function()
-				local val = pac.class.Copy(pace.clipboard)
+				local val = pac.CopyValue(pace.clipboard)
 				if _G.type(val) == "number" then
 					val = ctor(val, val, val)
 				elseif _G.type(val) == "Vector" and type == "angle" then
@@ -1209,7 +1225,7 @@ do -- vector
 			menu:AddSpacer()
 			menu:AddOption(L"reset", function()
 				if pace.current_part and pace.current_part.DefaultVars[self.CurrentKey] then
-					local val = pac.class.Copy(pace.current_part.DefaultVars[self.CurrentKey])
+					local val = pac.CopyValue(pace.current_part.DefaultVars[self.CurrentKey])
 					self:SetValue(val)
 					self.OnValueChanged(val)
 				end
