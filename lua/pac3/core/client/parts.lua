@@ -46,7 +46,7 @@ function pac.CreatePart(name, owner)
 	part_count = part_count + 1
 
 	part.IsEnabled = pac.CreateClientConVarFast("pac_enable_" .. name, "1", true,"boolean")
-	part:SetUniqueID(tostring(util.CRC(os.time() + pac.RealTime + part_count)))
+	part:SetUniqueID(DLib.Util.QuickSHA1(os.time() .. ' ' .. SysTime() .. ' ' .. part_count .. ' ' .. (owner:SteamID() or ' ')))
 
 	merge_storable(part, part.BaseClass)
 
@@ -127,7 +127,7 @@ function pac.GenerateNewUniqueID(part_data, base)
 	local function fixpart(part)
 		for key, val in pairs(part.self) do
 			if val ~= "" and (key == "UniqueID" or key:sub(-3) == "UID") then
-				part.self[key] = util.CRC(base .. val)
+				part.self[key] = DLib.Util.QuickSHA1(base .. val)
 			end
 		end
 

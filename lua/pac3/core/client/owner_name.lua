@@ -33,7 +33,7 @@ function pac.CalcEntityCRC(ent)
 
 	local crc = x .. y .. z .. p .. _y .. r .. mdl
 
-	return util.CRC(crc)
+	return DLib.Util.QuickSHA1(crc)
 end
 
 SafeRemoveEntity(pac.WorldEntity)
@@ -121,6 +121,7 @@ function pac.HandleOwnerName(owner, name, ent, part, check_func)
 
 	if name:find("persist ", nil, true) then
 		local crc = name:match("persist (.+)")
+
 		for _, val in pairs(ents.GetAll()) do
 			if val.GetPersistent and val:GetModel() and val:GetPersistent() and crc == pac.CalcEntityCRC(val) then
 				return val

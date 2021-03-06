@@ -22,7 +22,7 @@ end)
 
 local function make_copy(tbl, input)
 	if tbl.self.UniqueID then
-		tbl.self.UniqueID = util.CRC(tbl.self.UniqueID .. input)
+		tbl.self.UniqueID = DLib.Util.QuickSHA1(tbl.self.UniqueID .. input)
 	end
 
 	for key, val in pairs(tbl.children) do
@@ -181,7 +181,7 @@ function pace.SubmitPart(data, filter)
 			--[[for key, v in pairs(pace.dupe_ents) do
 				if v.owner:IsValid() and v.owner == data.owner then
 					if v.ent:IsValid() and v.ent.pac_parts then
-						local id = util.CRC(data.part .. v.ent:EntIndex())
+						local id = DLib.Util.QuickSHA1(data.part .. v.ent:EntIndex())
 						v.ent.pac_parts[id] = nil
 						duplicator.ClearEntityModifier(v.ent, "pac_config")
 						duplicator.StoreEntityModifier(v.ent, "pac_config", v.ent.pac_parts)

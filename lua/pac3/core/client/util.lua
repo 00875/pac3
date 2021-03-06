@@ -378,18 +378,6 @@ do
 
 end
 
-function pac.CalcEntityCRC(ent)
-	local pos = ent:GetPos()
-	local ang = ent:GetAngles()
-	local mdl = ent:GetModel():lower():gsub("\\", "/")
-	local x,y,z = math.Round(pos.x/10)*10, math.Round(pos.y/10)*10, math.Round(pos.z/10)*10
-	local p,_y,r = math.Round(ang.p/10)*10, math.Round(ang.y/10)*10, math.Round(ang.r/10)*10
-
-	local crc = x .. y .. z .. p .. _y .. r .. mdl
-
-	return util.CRC(crc)
-end
-
 function pac.MakeNull(tbl)
 	if tbl then
 		for k in pairs(tbl) do

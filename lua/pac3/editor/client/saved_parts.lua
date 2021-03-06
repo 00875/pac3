@@ -614,6 +614,7 @@ function pace.AddSaveMenuToMenu(menu, override_part)
 end
 
 -- this fixes parts that are using the same uniqueid as other parts because of some bugs in older versions
+-- not relevant with SHA1 indexes?
 function pace.FixUniqueIDs(data)
 	local ids = {}
 
@@ -635,7 +636,7 @@ function pace.FixUniqueIDs(data)
 		if #val > 1 then
 			for key, part in pairs(val) do
 				pac.dprint("Part (%s using model %s) named %q has %i other parts with the same unique id. Fixing!", part.self.ClassName, part.self.Name, part.self.Model or "", #val)
-				part.self.UniqueID = util.CRC(key .. tostring(part) .. SysTime())
+				part.self.UniqueID = DLib.Util.QuickSHA1(key .. ' ' .. tostring(part) .. ' ' .. SysTime())
 			end
 		end
 	end
@@ -663,7 +664,7 @@ function pace.FixBadGrouping(data)
 				["self"] = {
 					["EditorExpand"] = true,
 					["ClassName"] = "group",
-					["UniqueID"] = util.CRC(tostring(data)),
+					["UniqueID"] = DLib.Util.QuickSHA1(DLib.GON.Serialize(data):ToString()),
 					["Name"] = "automatic group",
 				},
 

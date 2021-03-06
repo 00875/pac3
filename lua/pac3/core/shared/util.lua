@@ -168,10 +168,10 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 			return
 		end
 
-		local id = util.CRC(url .. file_content .. PAC_MDL_SALT)
+		local id = DLib.Util.QuickSHA1(url .. file_content .. PAC_MDL_SALT)
 
 		if skip_cache then
-			id = util.CRC(id .. os.clock())
+			id = DLib.Util.QuickSHA1(id .. os.clock())
 		end
 
 		if skip_cache or not file.Exists("pac3_cache/downloads/"..id..".dat", "DATA") then

@@ -285,6 +285,7 @@ do -- owner
 
 		self:SetUniqueID(self:GetUniqueID())
 	end
+
 	function PART:SetOwnerName(name)
 		self.OwnerName = name
 		self:CheckOwner()
@@ -866,7 +867,7 @@ do -- serializing
 			self.delayed_variables = self.delayed_variables or {}
 
 			-- this needs to be set first
-			self:SetUniqueID(tbl.self.UniqueID or util.CRC(tostring(tbl.self)))
+			self:SetUniqueID(tbl.self.UniqueID or DLib.Util.QuickSHA1(DLib.GON.Serialize(tbl.self):ToString()))
 
 			for key, value in pairs(tbl.self) do
 
@@ -901,23 +902,24 @@ do -- serializing
 		local function make_copy(tbl, pepper)
 			for key, val in pairs(tbl.self) do
 				if key == "UniqueID" or key:sub(-3) == "UID" then
-					tbl.self[key] = util.CRC(val .. pepper)
+					tbl.self[key] = DLib.Util.QuickSHA1(val .. pepper)
 				end
 			end
 
 			for _, child in ipairs(tbl.children) do
 				make_copy(child, pepper)
 			end
+
 			return tbl
 		end
 
 		function PART:SetTable(tbl, copy_id)
-
 			if copy_id then
 				tbl = make_copy(table.Copy(tbl), copy_id)
 			end
 
 			local ok, err = xpcall(SetTable, ErrorNoHalt, self, tbl)
+
 			if not ok then
 				pac.Message(Color(255, 50, 50), "SetTable failed: ", err)
 			end
@@ -932,7 +934,7 @@ do -- serializing
 			var = pac.class.Copy(var) or var
 
 			if make_copy_name and var ~= "" and (key == "UniqueID" or key:sub(-3) == "UID") then
-				var = util.CRC(var .. var)
+				var = DLib.Util.QuickSHA1(var .. var)
 			end
 
 			if key == "Name" and self[key] == "" then
@@ -1000,7 +1002,7 @@ do -- serializing
 				self.delayed_variables = self.delayed_variables or {}
 
 				-- this needs to be set first
-				self:SetUniqueID(tbl.self.UniqueID or util.CRC(tostring(tbl.self)))
+				self:SetUniqueID(tbl.self.UniqueID or DLib.Util.QuickSHA1(DLib.GON.Serialize(tbl.self):ToString()))
 
 				for key, value in pairs(tbl.self) do
 					if self["Set" .. key] then

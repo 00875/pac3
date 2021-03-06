@@ -104,7 +104,7 @@ function PART:AttachToEntity(ent)
 	ent.pac_draw_distance = 0
 
 	local tbl = self.OutfitPart:ToTable()
-	tbl.self.UniqueID = util.CRC(tbl.self.UniqueID .. tbl.self.UniqueID)
+	tbl.self.UniqueID = DLib.Util.QuickSHA1(tbl.self.UniqueID .. tbl.self.UniqueID)
 
 	local part = pac.CreatePart(tbl.self.ClassName, self:GetPlayerOwner())
 

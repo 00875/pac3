@@ -89,12 +89,7 @@ do -- to server
 
 		net.Start("pac_submit")
 
-		local bytes, err = net_write_table(data)
-
-		if not bytes then
-			pace.Notify(false, "unable to transfer data to server: " .. tostring(err or "too big"), part:GetName())
-			return false
-		end
+		local bytes = net_write_table(data)
 
 		net.SendToServer()
 		pac.Message(('Transmitting outfit %q to server (%s)'):format(part.Name or part.ClassName or '<unknown>', DLib.I18n.FormatAnyBytesLong(bytes)))
@@ -110,11 +105,7 @@ do -- to server
 		end
 
 		net.Start("pac_submit")
-			local ret,err = net_write_table(data)
-			if ret == nil then
-				pace.Notify(false, "unable to transfer data to server: "..tostring(err or "too big"), name)
-				return false
-			end
+		net_write_table(data)
 		net.SendToServer()
 
 		return true

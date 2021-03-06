@@ -122,7 +122,7 @@ pace.AddTool(L"convert legacy parts to new parts", function(part, suboption)
 					table.insert(tbl.children, {
 						self = {
 							ClassName = "motion_blur",
-							UniqueID = util.CRC(tostring({})),
+							UniqueID = DLib.Util.QuickSHA1(SysTime() .. ' ' .. os.time()),
 							BlurLength = tbl.self.BlurLength,
 							BlurSpacing = tbl.self.BlurSpacing,
 						},
@@ -136,7 +136,7 @@ pace.AddTool(L"convert legacy parts to new parts", function(part, suboption)
 					table.insert(parent.children, {
 						self = {
 							ClassName = "weapon",
-							UniqueID = util.CRC(tostring({})),
+							UniqueID = DLib.Util.QuickSHA1(SysTime() .. ' ' .. os.time()),
 							NoDraw = true
 						},
 						children = {},
