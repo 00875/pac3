@@ -37,7 +37,7 @@ function pace.CanPlayerModify(ply, ent)
 		return true
 	end
 
-	if ent.CPPICanTool and ent:CPPICanTool(ply, "paint") then
+	if ent.CPPICanTool and ent:CPPICanTool(ply, "paint", ent) then
 		return true
 	end
 
