@@ -233,27 +233,6 @@ function PART:OnUpdateAnimation()
 	if ent:IsValid() then
 		if not self.random_seqname then return end
 
-		local seq = ent:LookupSequence(self.random_seqname) or 0
-
-		local duration = 0
-		local count = ent:GetSequenceCount() or 0
-		if seq >= 0 and seq < count and count > 0 then
-			duration = ent:SequenceDuration(seq)
-		else
-			-- It's an invalid sequence. Don't bother
-			return
-		end
-
-		if self.OwnerCycle then
-			local owner = self:GetRootPart():GetOwner()
-
-			if IsValid(owner) then
-				ent:SetCycle(owner:GetCycle())
-			end
-
-			return
-		end
-
 		local rate = math.min(self.Rate * duration, 1)
 
 		if seq ~= -1 then

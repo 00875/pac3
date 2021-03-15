@@ -88,8 +88,15 @@ do
 				for key, part in pairs(parts) do
 					if part:IsValid() then
 						if not part:HasParent() then
-							part:CallRecursive("BuildBonePositions")
-							part:CallRecursive('Think')
+							if pac.profile then
+								part:CallRecursiveProfiled('CThink')
+								part:CallRecursiveProfiled("BuildBonePositions")
+							else
+								part:CallRecursive('CThink')
+								part:CallRecursive("BuildBonePositions")
+							end
+						else
+							parts[key] = nil
 						end
 					else
 						parts[key] = nil
@@ -111,6 +118,19 @@ do
 					parts[key] = nil
 				end
 			end
+		end
+
+		if pac.profile then
+			TIME = util_TimerCycle()
+
+			pac.profile_info[ent] = pac.profile_info[ent] or {types = {}, times_ran = 0}
+			pac.profile_info[ent].times_ran = pac.profile_info[ent].times_ran + 1
+
+			pac.profile_info[ent].types[type] = pac.profile_info[ent].types[type] or {}
+
+			local data = pac.profile_info[ent].types[type]
+
+			data.total_render_time = (data.total_render_time or 0) + TIME
 		end
 
 		if max_render_time > 0 and ent ~= pac.LocalPlayer then
@@ -771,15 +791,14 @@ do -- drawing
 		end)
 	end
 
-	do
-		local should_suppress = setup_suppress()
+	pac.AddHook("Think", "update_parts", function(viewmodelIn, playerIn, weaponIn)
+		pac.RealTime = RealTime()
+		pac.FrameNumber = FrameNumber()
 
-		pac.AddHook("PostDrawTranslucentRenderables", "draw_translucent", function(bDrawingDepth, bDrawingSkybox)
-			if should_suppress() then return end
-
-			for ent in next, pac.drawn_entities do
-				if ent.pac_draw_cond and ent_parts[ent] then -- accessing table of NULL doesn't do anything
-					pac.RenderOverride(ent, "translucent")
+		for ent in next, pac.drawn_entities do
+			if IsValid(ent) then
+				if ent.pac_drawing and ent_parts[ent] then
+					pac.RenderOverride(ent, "update", true)
 				end
 			end
 		end)
