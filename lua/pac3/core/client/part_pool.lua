@@ -673,7 +673,7 @@ do -- drawing
 		local fovoverride
 		local pac_sv_draw_distance
 
-		pac.AddHook("Think", "update_parts", function()
+		pac.AddHook("PostDrawOpaqueRenderables", "draw_opaque", function()
 			-- commonly used variables
 			max_render_time = max_render_time_cvar:GetFloat()
 			pac.RealTime = RealTime()
@@ -762,7 +762,7 @@ do -- drawing
 
 					pac.ShowEntityParts(ent)
 
-					pac.RenderOverride(ent, "update")
+					pac.RenderOverride(ent, "opaque")
 				else
 					if forced_rendering then
 						forced_rendering = false
@@ -780,12 +780,12 @@ do -- drawing
 	do
 		local should_suppress = setup_suppress()
 
-		pac.AddHook("PostDrawOpaqueRenderables", "draw_opaque", function(bDrawingDepth, bDrawingSkybox)
+		pac.AddHook("PostDrawTranslucentRenderables", "draw_translucent", function(bDrawingDepth, bDrawingSkybox)
 			if should_suppress() then return end
 
 			for ent in next, pac.drawn_entities do
 				if ent.pac_draw_cond and ent_parts[ent] then
-					pac.RenderOverride(ent, "opaque")
+					pac.RenderOverride(ent, "opaque", true)
 				end
 			end
 		end)
