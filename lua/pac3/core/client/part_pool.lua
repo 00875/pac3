@@ -262,12 +262,14 @@ pac.AddHook("Think", "events", function()
 	for _, ply in ipairs(player.GetAll()) do
 		if not ent_parts[ply] then continue end
 		if pac.IsEntityIgnored(ply) then continue end
+		if ply:IsDormant() then continue end
 
 		if Alive(ply) then
 			if ply.pac_revert_ragdoll then
 				ply.pac_revert_ragdoll()
 				ply.pac_revert_ragdoll = nil
 			end
+
 			continue
 		end
 
@@ -701,6 +703,8 @@ do -- drawing
 					goto CONTINUE
 				end
 
+				if ent:IsDormant() then goto CONTINUE end
+
 				ent.pac_pixvis = ent.pac_pixvis or util.GetPixelVisibleHandle()
 				dst = ent:EyePos():Distance(pac.EyePos)
 				radius = ent:BoundingRadius() * 3 * (ent:GetModelScale() or 1)
@@ -784,7 +788,7 @@ do -- drawing
 			if should_suppress() then return end
 
 			for ent in next, pac.drawn_entities do
-				if ent.pac_draw_cond and ent_parts[ent] then
+				if ent.pac_draw_cond and ent_parts[ent] and not ent:IsDormant() then
 					pac.RenderOverride(ent, "opaque", true)
 				end
 			end
@@ -797,7 +801,7 @@ do -- drawing
 
 		for ent in next, pac.drawn_entities do
 			if IsValid(ent) then
-				if ent.pac_drawing and ent_parts[ent] then
+				if ent.pac_drawing and ent_parts[ent] and not ent:IsDormant() then
 					pac.RenderOverride(ent, "update", true)
 				end
 			end
