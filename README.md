@@ -1,5 +1,7 @@
 # PAC3
 
+This branch is ahead of `master`, `develop` and `refactor`, with DLib features replacing some of PAC and PACE.
+
 ---
 
 PAC3 gives you the ability to personalize your player model's look by placing objects and effects on yourself. You can go from putting just a hat on your head to creating an entire new player model. PAC works on any entity and can also be used as a way to make custom weapons and npcs for your gamemode easily. 
