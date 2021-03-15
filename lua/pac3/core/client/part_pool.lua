@@ -801,8 +801,8 @@ do -- drawing
 					pac.RenderOverride(ent, "update", true)
 				end
 			end
-		end)
-	end
+		end
+	end)
 
 	pac.AddHook("UpdateAnimation", "update_animation_parts", function(ply)
 		if ply.pac_draw_cond and ent_parts[ply] then -- accessing table of NULL doesn't do anything
