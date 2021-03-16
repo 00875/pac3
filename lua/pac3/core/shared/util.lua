@@ -72,7 +72,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 			return
 		end
 
-		local id = DLib.Util.QuickSHA1(url .. file_content .. PAC_MDL_SALT)
+		local id = DLib.Util.QuickSHA1(url .. file_content .. PAC_MDL_SALT .. 'c')
 
 		if skip_cache then
 			id = DLib.Util.QuickSHA1(id .. os.clock())
@@ -280,9 +280,6 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						local size_offset = f:Tell()
 						local size = f:ReadUInt32LE()
 
-						print(version, checksum, name)
-						print(size)
-
 						f:Walk(12 * 6) -- skips over all the vec3 stuff
 
 						f:Walk(4) -- flags
@@ -340,6 +337,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 							local old_pos = f:Tell()
 							f:Seek(vtf_dir_offset)
+
 							for i = 1, vtf_dir_count do
 								local offset_pos = f:Tell()
 								local offset = f:ReadUInt32LE() --+ 1 -- +1 to convert 0 indexed to 1 indexed
@@ -351,8 +349,10 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 								table.insert(found_vmt_directories, {dir = dir})
 								f:Seek(old_pos)
 							end
+
 							f:Seek(old_pos)
 						end
+
 						f:Walk(4 + 8) -- skin
 						f:Walk(8) -- bodypart
 						f:Walk(8) -- attachment
@@ -447,7 +447,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 							end
 						else
 							local new_name = "models/" .. dir .. data.file_name:gsub("mdl$", "ani")
-							local newoffset = f:Length() + 1
+							local newoffset = f:Length() --+ 1
 							f:Seek(newoffset)
 							f:WriteString(new_name)
 							f:Seek(anim_name_offset_pos)
@@ -457,7 +457,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						local cursize = f:Length()
 
 						-- Add NULs to align to 4 bytes
-						local padding = 4-cursize%4
+						local padding = 4 - cursize % 4
 						if padding < 4 then
 							f:Seek(cursize)
 							f:WriteBinary(string.rep("\0",padding))
