@@ -294,7 +294,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 							vmt_dir_count = f:ReadUInt32()
 							vmt_dir_offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
 
-							local old_pos = f:tell()
+							local old_pos = f:Tell()
 							f:Seek(vmt_dir_offset)
 								local offset = f:ReadInt32()
 								if offset > -1 then
