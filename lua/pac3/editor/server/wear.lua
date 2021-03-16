@@ -225,11 +225,11 @@ local function SubmitPartWorker()
 						thx for the tip
 				]]
 
-				table.insert(data.wear_filter, Entity(1):SteamID())
+				table.insert(data.wear_filter, Entity(1):DLibUniqueID())
 			end
 
 			for i, ply in ipairs(player.GetAll()) do
-				lookup[ply:SteamID()] = ply
+				lookup[ply:DLibUniqueID()] = ply
 			end
 
 			for i, v in ipairs(data.wear_filter) do
