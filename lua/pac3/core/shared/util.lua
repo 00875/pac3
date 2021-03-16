@@ -15,7 +15,7 @@ function pac.dprint(fmt, ...)
 	MsgN("\n")
 end
 
-local DEBUG_MDL = false
+local DEBUG_MDL = true
 local VERBOSE = false
 
 local shader_params = include("pac3/libraries/shader_params.lua")
@@ -272,13 +272,16 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 						local f = DLib.BytesBuffer(data.buffer)
 						local id = f:ReadBinary(4)
-						local version = f:ReadUInt32()
-						local checksum = f:ReadUInt32()
+						local version = f:ReadUInt32LE()
+						local checksum = f:ReadUInt32LE()
 
 						local name_offset = f:Tell()
 						local name = f:ReadBinary(64)
 						local size_offset = f:Tell()
-						local size = f:ReadUInt32()
+						local size = f:ReadUInt32LE()
+
+						print(version, checksum, name)
+						print(size)
 
 						f:Walk(12 * 6) -- skips over all the vec3 stuff
 
@@ -291,12 +294,12 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						f:Walk(8) -- activitylistversion + eventsindexed
 
 						do
-							vmt_dir_count = f:ReadUInt32()
-							vmt_dir_offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+							vmt_dir_count = f:ReadUInt32LE()
+							vmt_dir_offset = f:ReadUInt32LE() --+ 1 -- +1 to convert 0 indexed to 1 indexed
 
 							local old_pos = f:Tell()
 							f:Seek(vmt_dir_offset)
-								local offset = f:ReadInt32()
+								local offset = f:ReadInt32LE()
 								if offset > -1 then
 									offset = offset + vmt_dir_offset
 									if VERBOSE then print(data.file_name, "MATERIAL OFFSET:", offset) end
@@ -332,14 +335,14 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 
 						do
-							vtf_dir_count = f:ReadUInt32()
-							vtf_dir_offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+							vtf_dir_count = f:ReadUInt32LE()
+							vtf_dir_offset = f:ReadUInt32LE() --+ 1 -- +1 to convert 0 indexed to 1 indexed
 
 							local old_pos = f:Tell()
 							f:Seek(vtf_dir_offset)
 							for i = 1, vtf_dir_count do
 								local offset_pos = f:Tell()
-								local offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+								local offset = f:ReadUInt32LE() --+ 1 -- +1 to convert 0 indexed to 1 indexed
 
 								local old_pos = f:Tell()
 								f:Seek(offset)
@@ -366,8 +369,8 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						f:Walk(4) -- contents
 
 						do
-							include_mdl_dir_count = f:ReadUInt32()
-							include_mdl_dir_offset = f:ReadUInt32() + 1 -- +1 to convert 0 indexed to 1 indexed
+							include_mdl_dir_count = f:ReadUInt32LE()
+							include_mdl_dir_offset = f:ReadUInt32LE() --+ 1 -- +1 to convert 0 indexed to 1 indexed
 
 							local old_pos = f:Tell()
 
@@ -377,10 +380,10 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 								f:Walk(4)
 
-								local file_name_offset = f:readUInt32()
-								local old_pos = f:tell()
+								local file_name_offset = f:ReadUInt32LE()
+								local old_pos = f:Tell()
 									f:Seek(base_pos + file_name_offset)
-									table.insert(found_mdl_includes, {base_pos = base_pos, path = f:readString()})
+									table.insert(found_mdl_includes, {base_pos = base_pos, path = f:ReadString()})
 								f:Seek(old_pos)
 							end
 
@@ -389,7 +392,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 						f:Walk(4) -- virtual pointer
 
-						local anim_name_offset_pos = f:tell()
+						local anim_name_offset_pos = f:Tell()
 
 						if VERBOSE or DEBUG_MDL then
 							print(data.file_name, "MATERIAL DIRECTORIES:")
@@ -423,11 +426,11 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 
 							if found then
 								local path = "models/" .. dir .. file_name
-								local newoffset = f:size() + 1
+								local newoffset = f:Length() --+ 1 -- +1 to convert 0 indexed to 1 indexed
 								f:Seek(newoffset)
 								f:WriteString(path)
 								f:Seek(v.base_pos + 4)
-								f:WriteInt32(newoffset - v.base_pos)
+								f:WriteInt32LE(newoffset - v.base_pos)
 							elseif ply == pac.LocalPlayer and not file.Exists(v.path, "GAME") then
 								pac.Message(Color(255, 50, 50), "the model want to include ", v.path, " but it doesn't exist")
 							end
@@ -436,33 +439,33 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						-- if we extend the mdl file with vmt directories we don't have to change any offsets cause nothing else comes after it
 						if data.file_name == "model.mdl" then
 							for i,v in ipairs(found_materialdirs) do
-								local newoffset = f:size() + 1
+								local newoffset = f:Length() --+ 1 -- +1 to convert 0 indexed to 1 indexed
 								f:Seek(newoffset)
 								f:WriteString(dir)
 								f:Seek(v.offset_pos)
-								f:WriteInt32(newoffset - 1) -- -1 to convert 1 indexed to 0 indexed
+								f:WriteInt32LE(newoffset) -- -1 to convert 1 indexed to 0 indexed
 							end
 						else
 							local new_name = "models/" .. dir .. data.file_name:gsub("mdl$", "ani")
-							local newoffset = f:size() + 1
+							local newoffset = f:Length() + 1
 							f:Seek(newoffset)
 							f:WriteString(new_name)
 							f:Seek(anim_name_offset_pos)
-							f:WriteInt32(newoffset - 1) -- -1 to convert 1 indexed to 0 indexed
+							f:WriteInt32LE(newoffset) -- -1 to convert 1 indexed to 0 indexed
 						end
 
-						local cursize = f:size()
+						local cursize = f:Length()
 
-						-- Add nulls to align to 4 bytes
+						-- Add NULs to align to 4 bytes
 						local padding = 4-cursize%4
-						if padding<4 then
-							f:Seek(cursize+1)
+						if padding < 4 then
+							f:Seek(cursize)
 							f:WriteBinary(string.rep("\0",padding))
 							cursize = cursize + padding
 						end
 
 						f:Seek(size_offset)
-						f:WriteInt32(cursize)
+						f:WriteInt32LE(cursize)
 
 						data.buffer = f:ToString()
 
@@ -471,7 +474,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						end
 
 						local crc = DLib.BytesBuffer()
-						crc:WriteInt32(tonumber(util.CRC(data.buffer)))
+						crc:WriteUInt32LE(tonumber(util.CRC(data.buffer)))
 						data.crc = crc:ToString()
 					end
 				end
@@ -529,7 +532,7 @@ function pac.DownloadMDL(url, callback, onfail, ply)
 						end
 
 						local crc = DLib.BytesBuffer()
-						crc:WriteInt32(tonumber(util.CRC(data.buffer)))
+						crc:WriteUInt32LE(tonumber(util.CRC(data.buffer)))
 						data.crc = crc:ToString()
 					end
 				end
