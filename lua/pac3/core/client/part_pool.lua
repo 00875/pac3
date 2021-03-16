@@ -684,8 +684,8 @@ do -- drawing
 		function doRenderOverride(...)
 			-- commonly used variables
 			max_render_time = max_render_time_cvar:GetFloat()
-			pac.RealTime = RealTime()
-			pac.FrameNumber = FrameNumber()
+			-- pac.RealTime = RealTime()
+			-- pac.FrameNumber = FrameNumber()
 
 			draw_dist = cvar_distance:GetInt()
 			fovoverride = cvar_fovoverride:GetBool()
@@ -797,12 +797,17 @@ do -- drawing
 		end)
 	end
 
-	pac.AddHook("PreRender", "update_parts", function()
-		pac.RealTime = RealTime()
-		pac.FrameNumber = FrameNumber()
+	do
+		local last_frame
 
-		doRenderOverride("update", true)
-	end)
+		pac.AddHook("PreRender", "update_parts", function()
+			if last_frame == FrameNumber() then return end
+			pac.RealTime = RealTime()
+			pac.FrameNumber = FrameNumber()
+
+			doRenderOverride("update", true)
+		end)
+	end
 
 	pac.AddHook("UpdateAnimation", "update_animation_parts", function(ply)
 		if ply.pac_draw_cond and ent_parts[ply] then -- accessing table of NULL doesn't do anything
