@@ -15,7 +15,7 @@ function pac.dprint(fmt, ...)
 	MsgN("\n")
 end
 
-local DEBUG_MDL = true
+local DEBUG_MDL = false
 local VERBOSE = false
 
 local shader_params = include("pac3/libraries/shader_params.lua")
