@@ -666,6 +666,8 @@ do -- drawing
 		end
 	end
 
+	local doRenderOverride
+
 	do
 		local draw_dist = 0
 		local sv_draw_dist = 0
@@ -676,6 +678,10 @@ do -- drawing
 		local pac_sv_draw_distance
 
 		pac.AddHook("PostDrawOpaqueRenderables", "draw_opaque", function()
+			doRenderOverride("opaque")
+		end)
+
+		function doRenderOverride(...)
 			-- commonly used variables
 			max_render_time = max_render_time_cvar:GetFloat()
 			pac.RealTime = RealTime()
@@ -766,7 +772,7 @@ do -- drawing
 
 					pac.ShowEntityParts(ent)
 
-					pac.RenderOverride(ent, "opaque")
+					pac.RenderOverride(ent, ...)
 				else
 					if forced_rendering then
 						forced_rendering = false
@@ -778,7 +784,7 @@ do -- drawing
 
 				::CONTINUE::
 			end
-		end)
+		end
 	end
 
 	do
@@ -787,25 +793,15 @@ do -- drawing
 		pac.AddHook("PostDrawTranslucentRenderables", "draw_translucent", function(bDrawingDepth, bDrawingSkybox)
 			if should_suppress() then return end
 
-			for ent in next, pac.drawn_entities do
-				if ent.pac_draw_cond and ent_parts[ent] and not ent:IsDormant() then
-					pac.RenderOverride(ent, "opaque", true)
-				end
-			end
+			doRenderOverride("translucent", true)
 		end)
 	end
 
-	pac.AddHook("Think", "update_parts", function(viewmodelIn, playerIn, weaponIn)
+	pac.AddHook("PreRender", "update_parts", function()
 		pac.RealTime = RealTime()
 		pac.FrameNumber = FrameNumber()
 
-		for ent in next, pac.drawn_entities do
-			if IsValid(ent) then
-				if ent.pac_drawing and ent_parts[ent] and not ent:IsDormant() then
-					pac.RenderOverride(ent, "update", true)
-				end
-			end
-		end
+		doRenderOverride("update", true)
 	end)
 
 	pac.AddHook("UpdateAnimation", "update_animation_parts", function(ply)
